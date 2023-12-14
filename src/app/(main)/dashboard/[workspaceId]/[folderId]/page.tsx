@@ -1,22 +1,18 @@
-export const dynamic = 'force-dynamic'; // works with quill
+export const dynamic = 'force-dynamic';
 
-import QuillEditor from '@/components/quill-editor/QuillEditor';
-import { WPDirType } from '@/lib/interfaces';
+import React from 'react';
+import QuillEditor from '@/components/quill-editor/quill-editor';
 import { getFolderDetails } from '@/lib/supabase/queries';
 import { redirect } from 'next/navigation';
 
-export type FolderProps = {
-  params: { folderId: string };
-};
-
-const FolderPage: React.FC<FolderProps> = async ({ params }) => {
+const Folder = async ({ params }: { params: { folderId: string } }) => {
   const { data, error } = await getFolderDetails(params.folderId);
   if (error || !data.length) redirect('/dashboard');
 
   return (
     <div className="relative ">
       <QuillEditor
-        dirType={WPDirType.folder}
+        dirType="folder"
         fileId={params.folderId}
         dirDetails={data[0] || {}}
       />
@@ -24,4 +20,4 @@ const FolderPage: React.FC<FolderProps> = async ({ params }) => {
   );
 };
 
-export default FolderPage;
+export default Folder;

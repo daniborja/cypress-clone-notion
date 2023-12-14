@@ -1,23 +1,17 @@
-import { redirect } from 'next/navigation';
-export const dynamic = 'force-dynamic'; // works with quill
+export const dynamic = 'force-dynamic';
 
-import QuillEditor from '@/components/quill-editor/QuillEditor';
-import { WPDirType } from '@/lib/interfaces';
+import QuillEditor from '@/components/quill-editor/quill-editor';
 import { getWorkspaceDetails } from '@/lib/supabase/queries';
+import { redirect } from 'next/navigation';
+import React from 'react';
 
-export type WorkspacePageProps = {
-  params: { workspaceId: string };
-};
-
-////* Server Components can be Async to fetch data
-const WorkspacePage: React.FC<WorkspacePageProps> = async ({ params }) => {
+const Workspace = async ({ params }: { params: { workspaceId: string } }) => {
   const { data, error } = await getWorkspaceDetails(params.workspaceId);
   if (error || !data.length) redirect('/dashboard');
-
   return (
     <div className="relative">
       <QuillEditor
-        dirType={WPDirType.workspace}
+        dirType="workspace"
         fileId={params.workspaceId}
         dirDetails={data[0] || {}}
       />
@@ -25,4 +19,4 @@ const WorkspacePage: React.FC<WorkspacePageProps> = async ({ params }) => {
   );
 };
 
-export default WorkspacePage;
+export default Workspace;

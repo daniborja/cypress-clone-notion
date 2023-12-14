@@ -8,7 +8,6 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
-
 import {
   prices,
   products,
@@ -16,19 +15,18 @@ import {
   users,
 } from '../../../migrations/schema';
 
-////* Drizzle schemas ara very similar to SQL syntaxs
-
-// // table name
 export const workspaces = pgTable('workspaces', {
-  // column's table
   id: uuid('id').defaultRandom().primaryKey().notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+  createdAt: timestamp('created_at', {
+    withTimezone: true,
+    mode: 'string',
+  })
     .defaultNow()
     .notNull(),
-  workspaceOwner: uuid('workspace_owner').notNull(), // relations/associations
+  workspaceOwner: uuid('workspace_owner').notNull(),
   title: text('title').notNull(),
   iconId: text('icon_id').notNull(),
-  data: text('data'), //
+  data: text('data'),
   inTrash: text('in_trash'),
   logo: text('logo'),
   bannerUrl: text('banner_url'),
@@ -47,8 +45,6 @@ export const folders = pgTable('folders', {
   data: text('data'),
   inTrash: text('in_trash'),
   bannerUrl: text('banner_url'),
-
-  // relations/associations
   workspaceId: uuid('workspace_id')
     .notNull()
     .references(() => workspaces.id, {
@@ -69,8 +65,6 @@ export const files = pgTable('files', {
   data: text('data'),
   inTrash: text('in_trash'),
   bannerUrl: text('banner_url'),
-
-  // relations/associations
   workspaceId: uuid('workspace_id')
     .notNull()
     .references(() => workspaces.id, {
@@ -83,7 +77,6 @@ export const files = pgTable('files', {
     }),
 });
 
-// // stripe subscription - supabase
 export const subscriptions = pgTable('subscriptions', {
   id: text('id').primaryKey().notNull(),
   userId: uuid('user_id').notNull(),
@@ -129,20 +122,17 @@ export const subscriptions = pgTable('subscriptions', {
   }).default(sql`now()`),
 });
 
-// // workspace collaborators
 export const collaborators = pgTable('collaborators', {
   id: uuid('id').defaultRandom().primaryKey().notNull(),
+  workspaceId: uuid('workspace_id')
+    .notNull()
+    .references(() => workspaces.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at', {
     withTimezone: true,
     mode: 'string',
   })
     .defaultNow()
     .notNull(),
-
-  // relations/associations
-  workspaceId: uuid('workspace_id')
-    .notNull()
-    .references(() => workspaces.id, { onDelete: 'cascade' }),
   userId: uuid('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
