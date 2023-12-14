@@ -1,15 +1,15 @@
-import { SubscriptionModalProvider } from '@/lib/providers/subscription-modal-provider';
+import { SubscriptionModalProvider } from '@/lib/context/ui/subscription-modal-provider';
 import { getActiveProductsWithPrice } from '@/lib/supabase/queries';
-import React from 'react';
 
-interface LayoutProps {
+export type MainLayoutProps = {
   children: React.ReactNode;
   params: any;
-}
+};
 
-const Layout: React.FC<LayoutProps> = async ({ children, params }) => {
+const MainLayout: React.FC<MainLayoutProps> = async ({ children }) => {
   const { data: products, error } = await getActiveProductsWithPrice();
   if (error) throw new Error();
+
   return (
     <main className="flex over-hidden h-screen">
       <SubscriptionModalProvider products={products}>
@@ -19,4 +19,4 @@ const Layout: React.FC<LayoutProps> = async ({ children, params }) => {
   );
 };
 
-export default Layout;
+export default MainLayout;

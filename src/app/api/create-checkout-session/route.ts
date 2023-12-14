@@ -1,11 +1,12 @@
-import { stripe } from '@/lib/stripe';
-import { createOrRetrieveCustomer } from '@/lib/stripe/adminTasks';
-import { getURL } from '@/lib/utils';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
+import { stripe } from '@/lib/stripe';
+import { createOrRetrieveCustomer } from '@/lib/stripe/adminTasks';
+import { getURL } from '@/lib/utils';
+
+/////* Create checkout session - Stripe
 export async function POST(request: Request) {
   const { price, quantity = 1, metadata = {} } = await request.json();
   try {
@@ -18,6 +19,7 @@ export async function POST(request: Request) {
       email: user?.email || '',
       uuid: user?.id || '',
     });
+
     const session = await stripe.checkout.sessions.create({
       //@ts-ignore
       payment_method_types: ['card'],
@@ -35,6 +37,7 @@ export async function POST(request: Request) {
       success_url: `${getURL()}/dashboard`,
       cancel_url: `${getURL()}/dashboard`,
     });
+
     return NextResponse.json({ sessionId: session.id });
   } catch (error: any) {
     console.log(error);

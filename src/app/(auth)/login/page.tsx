@@ -1,10 +1,16 @@
-'use client';
-import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
-import * as z from 'zod';
+'use client'; // router & react hooks
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FormSchema } from '@/lib/types';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation'; // v.13+
+import { useState } from 'react';
+import { SubmitHandler, useForm } from 'react-hook-form';
+
+import LOGO from '../../../../public/cypresslogo.svg';
+
+import { Loader } from '@/components/shared';
+import { Button } from '@/components/ui';
 import {
   Form,
   FormControl,
@@ -13,123 +19,107 @@ import {
   FormItem,
   FormMessage,
 } from '@/components/ui/form';
-import Link from 'next/link';
-import Image from 'next/image';
-import Logo from '../../../../public/cypresslogo.svg';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import Loader from '@/components/global/Loader';
-import { Separator } from '@/components/ui/separator';
-import { actionLoginUser } from '@/lib/server-actions/auth-actions';
+import { LoginSchema } from '@/lib/helpers';
+import { actionLoginUser } from '@/lib/server-actions';
 
-const LoginPage = () => {
+export type LoginPageProps = {};
+
+type FormData = {
+  email: string;
+  password: string;
+};
+
+const LoginPage: React.FC<LoginPageProps> = () => {
   const router = useRouter();
   const [submitError, setSubmitError] = useState('');
 
-  const form = useForm<z.infer<typeof FormSchema>>({
+  ///* Login Form
+  const form = useForm<FormData>({
     mode: 'onChange',
-    resolver: zodResolver(FormSchema),
-    defaultValues: { email: '', password: '' },
+    resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      // email: 'alex@test.com',
+      // password: '123123',
+    },
   });
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting },
+  } = form;
 
-  const isLoading = form.formState.isSubmitting;
-
-  const onSubmit: SubmitHandler<z.infer<typeof FormSchema>> = async (
-    formData
-  ) => {
+  const onLogin: SubmitHandler<FormData> = async formData => {
     const { error } = await actionLoginUser(formData);
     if (error) {
-      form.reset();
-      setSubmitError(error.message);
+      reset();
+      return setSubmitError(error.message);
     }
-    router.replace('/dashboard');
+
+    router.replace('/dashboard'); // can't return
   };
 
   return (
     <Form {...form}>
       <form
-        onChange={() => {
-          if (submitError) setSubmitError('');
-        }}
-        onSubmit={form.handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onLogin)}
         className="w-full sm:justify-center sm:w-[400px] space-y-6 flex flex-col"
       >
-        <Link
-          href="/"
-          className="
-          w-full
-          flex
-          justify-left
-          items-center"
-        >
-          <Image
-            src={Logo}
-            alt="cypress Logo"
-            width={50}
-            height={50}
-          />
-          <span
-            className="font-semibold
-          dark:text-white text-4xl first-letter:ml-2"
-          >
+        {/* ====== Logo ====== */}
+        <Link href="/" className="w-full flex justify-left items-center">
+          <Image src={LOGO} alt="cypress Logo" width={50} height={50} />
+          <span className="font-semibold dark:text-white text-4xl first-letter:ml-2">
             cypress.
           </span>
         </Link>
-        <FormDescription
-          className="
-        text-foreground/60"
-        >
+
+        <FormDescription className="text-foreground/60">
           An all-In-One Collaboration and Productivity Platform
         </FormDescription>
+
+        {/* ====== Inputs ====== */}
         <FormField
-          disabled={isLoading}
-          control={form.control}
+          disabled={isSubmitting}
+          control={control}
           name="email"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  {...field}
-                />
+                <Input type="email" placeholder="Email" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+        {/* Password */}
         <FormField
-          disabled={isLoading}
-          control={form.control}
+          disabled={isSubmitting}
+          control={control}
           name="password"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  {...field}
-                />
+                <Input type="password" placeholder="Password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
         {submitError && <FormMessage>{submitError}</FormMessage>}
+
         <Button
           type="submit"
           className="w-full p-6"
           size="lg"
-          disabled={isLoading}
+          disabled={isSubmitting}
         >
-          {!isLoading ? 'Login' : <Loader />}
+          {!isSubmitting ? 'Login' : <Loader />}
         </Button>
+
         <span className="self-container">
           Dont have an account?{' '}
-          <Link
-            href="/signup"
-            className="text-primary"
-          >
+          <Link href="/signup" className="text-primary">
             Sign Up
           </Link>
         </span>

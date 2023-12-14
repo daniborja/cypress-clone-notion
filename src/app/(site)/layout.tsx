@@ -1,10 +1,14 @@
-import Header from '@/components/landing-page/header';
-import React from 'react';
+import { Header } from '@/components/landing-page';
 
-const HomePageLayout = ({ children }: { children: React.ReactNode }) => {
+export type HomePageLayoutProps = {
+  children: React.ReactNode;
+};
+
+const HomePageLayout: React.FC<HomePageLayoutProps> = ({ children }) => {
   return (
     <main>
       <Header />
+
       {children}
     </main>
   );

@@ -7,6 +7,7 @@ body {
   height: 100%;
 }
 
+/* Shadcn theme */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -63,8 +64,9 @@ body {
   }
 }
 
+/* Logo Slide Animation */
 .animate-slide {
-  animation: 15s slide linear infinite;
+  animation: 63s slide linear infinite;
 }
 
 @keyframes slide {
@@ -76,31 +78,28 @@ body {
   }
 }
 
-.ce-popover-item:hover {
-  @apply bg-muted/40 transition-all !important;
+.unselectable {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -o-user-select: none;
+  user-select: none;
 }
 
-.ce-popover--opened {
-  @apply bg-card outline-none border-border dark:text-muted;
+.center-absolute {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
-.ce-popover-item__icon {
-  @apply dark:bg-background text-white font-medium shadow-none dark:border-[1px] !important;
-}
+/* not required by accordion modifications
+.disabled-svg > svg {
+  display: none;
+} */
 
-.ce-popover-item__title {
-  @apply dark:text-Neutrals/neutrals-7 font-normal;
-}
-
-.cdx-search-field {
-  @apply bg-background;
-}
-
-.ce-toolbar__content,
-.ce-block__content {
-  max-width: 750px;
-}
-
+/* ====== Quill Editor ====== */
 .editorFocus {
   @apply border-none outline-none;
 }
@@ -130,4 +129,24 @@ body {
 ol,
 ul {
   @apply dark:text-washed-purple-700;
+}
+
+/* ====== Scrollbar ====== */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: 249 45% 3.9%;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #20155a;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #20155a;
 }

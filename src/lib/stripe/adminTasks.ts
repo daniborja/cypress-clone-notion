@@ -1,6 +1,6 @@
+import { eq } from 'drizzle-orm';
 import Stripe from 'stripe';
-import { Price, Product, Subscription } from '../supabase/supabase.types';
-import db from '../supabase/db';
+
 import {
   customers,
   prices,
@@ -8,10 +8,14 @@ import {
   subscriptions,
   users,
 } from '../../../migrations/schema';
-import { stripe } from './index';
-import { eq } from 'drizzle-orm';
+import db from '../supabase/db';
+import { Price, Product, Subscription } from '../supabase/supabase.types';
 import { toDateTime } from '../utils';
+import { stripe } from './index';
 
+// // // All of those are provided by stripe webhook
+
+/////* s
 export const upsertProductRecord = async (product: Stripe.Product) => {
   const productData: Product = {
     id: product.id,
@@ -21,6 +25,7 @@ export const upsertProductRecord = async (product: Stripe.Product) => {
     image: product.images?.[0] ?? null,
     metadata: product.metadata,
   };
+
   try {
     await db
       .insert(products)
@@ -29,11 +34,14 @@ export const upsertProductRecord = async (product: Stripe.Product) => {
   } catch (error) {
     throw new Error();
   }
+
   console.log('Product inserted/updates:', product.id);
 };
 
+// price: Stripe.Price comes from webhook
 export const upsertPriceRecord = async (price: Stripe.Price) => {
   console.log(price, 'PRICE');
+
   const priceData: Price = {
     id: price.id,
     productId: typeof price.product === 'string' ? price.product : null,
@@ -47,6 +55,7 @@ export const upsertPriceRecord = async (price: Stripe.Price) => {
     trialPeriodDays: price.recurring?.trial_period_days ?? null,
     metadata: price.metadata,
   };
+
   try {
     await db
       .insert(prices)
@@ -66,12 +75,15 @@ export const createOrRetrieveCustomer = async ({
   uuid: string;
 }) => {
   try {
+    ////* retrieve customer
     const response = await db.query.customers.findFirst({
       where: (c, { eq }) => eq(c.id, uuid),
     });
-    if (!response) throw new Error();
+    if (!response) throw new Error(); // to create customer in catch block
+
     return response.stripeCustomerId;
   } catch (error) {
+    ////* create customer
     const customerData: { metadata: { supabaseUUID: string }; email?: string } =
       {
         metadata: {
@@ -79,11 +91,14 @@ export const createOrRetrieveCustomer = async ({
         },
       };
     if (email) customerData.email = email;
+
+    // create customer
     try {
       const customer = await stripe.customers.create(customerData);
       await db
         .insert(customers)
         .values({ id: uuid, stripeCustomerId: customer.id });
+
       console.log(`New customer created and inserted for ${uuid}.`);
       return customer.id;
     } catch (stripeError) {
@@ -99,8 +114,9 @@ export const copyBillingDetailsToCustomer = async (
   const customer = payment_method.customer as string;
   const { name, phone, address } = payment_method.billing_details;
   if (!name || !phone || !address) return;
-  //@ts-ignore
+  // @ts-ignore
   await stripe.customers.update(customer, { name, phone, address });
+
   try {
     await db
       .update(users)
@@ -124,12 +140,14 @@ export const manageSubscriptionStatusChange = async (
       where: (c, { eq }) => eq(c.stripeCustomerId, customerId),
     });
     if (!customerData) throw new Error('🔴Cannot find the customer');
+
     const { id: uuid } = customerData;
     const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
       expand: ['default_payment_method'],
     });
-    console.log('🟢UPDATED to  ',subscription.status);
+    console.log('🟢UPDATED to  ', subscription.status);
 
+    ///* subscription type
     const subscriptionData: Subscription = {
       id: subscription.id,
       userId: uuid,
@@ -162,13 +180,17 @@ export const manageSubscriptionStatusChange = async (
         ? toDateTime(subscription.trial_end).toISOString()
         : null,
     };
+
+    // insert subscription in db
     await db
       .insert(subscriptions)
       .values(subscriptionData)
       .onConflictDoUpdate({ target: subscriptions.id, set: subscriptionData });
+
     console.log(
       `Inserted/updated subscription [${subscription.id}] for user [${uuid}]`
     );
+
     if (createAction && subscription.default_payment_method && uuid) {
       await copyBillingDetailsToCustomer(
         uuid,

@@ -1,21 +1,30 @@
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import React, { useEffect } from 'react';
-import { useAppState } from '../providers/state-provider';
+import { useEffect } from 'react';
 
-import { File } from '../supabase/supabase.types';
 import { useRouter } from 'next/navigation';
+import { File } from '../supabase/supabase.types';
+import { useCypress } from './useCypress';
 
 const useSupabaseRealtime = () => {
   const supabase = createClientComponentClient();
-  const { dispatch, state, workspaceId: selectedWorskpace } = useAppState();
+  const {
+    state,
+    workspaceId: selectedWorskpace,
+    addFile: addFileContext,
+    deleteFile: deleteFileContext,
+    updateFile: updateFileContext,
+  } = useCypress();
   const router = useRouter();
+
   useEffect(() => {
     const channel = supabase
       .channel('db-changes')
       .on(
         'postgres_changes',
+        // all events in postgres public schema
         { event: '*', schema: 'public', table: 'files' },
-        async (payload) => {
+
+        async payload => {
           if (payload.eventType === 'INSERT') {
             console.log('🟢 RECEIVED REAL TIME EVENT');
             const {
@@ -23,11 +32,12 @@ const useSupabaseRealtime = () => {
               workspace_id: workspaceId,
               id: fileId,
             } = payload.new;
+
             if (
               !state.workspaces
-                .find((workspace) => workspace.id === workspaceId)
-                ?.folders.find((folder) => folder.id === folderId)
-                ?.files.find((file) => file.id === fileId)
+                .find(workspace => workspace.id === workspaceId)
+                ?.folders.find(folder => folder.id === folderId)
+                ?.files.find(file => file.id === fileId)
             ) {
               const newFile: File = {
                 id: payload.new.id,
@@ -40,17 +50,16 @@ const useSupabaseRealtime = () => {
                 inTrash: payload.new.in_trash,
                 bannerUrl: payload.new.banner_url,
               };
-              dispatch({
-                type: 'ADD_FILE',
-                payload: { file: newFile, folderId, workspaceId },
-              });
+
+              addFileContext({ file: newFile, folderId, workspaceId });
             }
           } else if (payload.eventType === 'DELETE') {
             let workspaceId = '';
             let folderId = '';
-            const fileExists = state.workspaces.some((workspace) =>
-              workspace.folders.some((folder) =>
-                folder.files.some((file) => {
+
+            const fileExists = state.workspaces.some(workspace =>
+              workspace.folders.some(folder =>
+                folder.files.some(file => {
                   if (file.id === payload.old.id) {
                     workspaceId = workspace.id;
                     folderId = folder.id;
@@ -59,31 +68,31 @@ const useSupabaseRealtime = () => {
                 })
               )
             );
+
             if (fileExists && workspaceId && folderId) {
               router.replace(`/dashboard/${workspaceId}`);
-              dispatch({
-                type: 'DELETE_FILE',
-                payload: { fileId: payload.old.id, folderId, workspaceId },
+              deleteFileContext({
+                fileId: payload.old.id,
+                folderId,
+                workspaceId,
               });
             }
           } else if (payload.eventType === 'UPDATE') {
             const { folder_id: folderId, workspace_id: workspaceId } =
               payload.new;
-            state.workspaces.some((workspace) =>
-              workspace.folders.some((folder) =>
-                folder.files.some((file) => {
+
+            state.workspaces.some(workspace =>
+              workspace.folders.some(folder =>
+                folder.files.some(file => {
                   if (file.id === payload.new.id) {
-                    dispatch({
-                      type: 'UPDATE_FILE',
-                      payload: {
-                        workspaceId,
-                        folderId,
-                        fileId: payload.new.id,
-                        file: {
-                          title: payload.new.title,
-                          iconId: payload.new.icon_id,
-                          inTrash: payload.new.in_trash,
-                        },
+                    updateFileContext({
+                      workspaceId,
+                      folderId,
+                      fileId: payload.new.id,
+                      file: {
+                        title: payload.new.title,
+                        iconId: payload.new.icon_id,
+                        inTrash: payload.new.in_trash,
                       },
                     });
                     return true;
@@ -99,7 +108,15 @@ const useSupabaseRealtime = () => {
     return () => {
       channel.unsubscribe();
     };
-  }, [supabase, state, selectedWorskpace]);
+  }, [
+    supabase,
+    state,
+    selectedWorskpace,
+    addFileContext,
+    router,
+    deleteFileContext,
+    updateFileContext,
+  ]);
 
   return null;
 };
