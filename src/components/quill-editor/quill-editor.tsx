@@ -87,19 +87,17 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     let selectedDir;
     if (dirType === 'file') {
       selectedDir = state.workspaces
-        .find((workspace) => workspace.id === workspaceId)
-        ?.folders.find((folder) => folder.id === folderId)
-        ?.files.find((file) => file.id === fileId);
+        .find(workspace => workspace.id === workspaceId)
+        ?.folders.find(folder => folder.id === folderId)
+        ?.files.find(file => file.id === fileId);
     }
     if (dirType === 'folder') {
       selectedDir = state.workspaces
-        .find((workspace) => workspace.id === workspaceId)
-        ?.folders.find((folder) => folder.id === fileId);
+        .find(workspace => workspace.id === workspaceId)
+        ?.folders.find(folder => folder.id === fileId);
     }
     if (dirType === 'workspace') {
-      selectedDir = state.workspaces.find(
-        (workspace) => workspace.id === fileId
-      );
+      selectedDir = state.workspaces.find(workspace => workspace.id === fileId);
     }
 
     if (selectedDir) {
@@ -120,9 +118,9 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
     if (!pathname || !state.workspaces || !workspaceId) return;
     const segments = pathname
       .split('/')
-      .filter((val) => val !== 'dashboard' && val);
+      .filter(val => val !== 'dashboard' && val);
     const workspaceDetails = state.workspaces.find(
-      (workspace) => workspace.id === workspaceId
+      workspace => workspace.id === workspaceId
     );
     const workspaceBreadCrumb = workspaceDetails
       ? `${workspaceDetails.iconId} ${workspaceDetails.title}`
@@ -133,7 +131,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
 
     const folderSegment = segments[1];
     const folderDetails = workspaceDetails?.folders.find(
-      (folder) => folder.id === folderSegment
+      folder => folder.id === folderSegment
     );
     const folderBreadCrumb = folderDetails
       ? `/ ${folderDetails.iconId} ${folderDetails.title}`
@@ -145,7 +143,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
 
     const fileSegment = segments[2];
     const fileDetails = folderDetails?.files.find(
-      (file) => file.id === fileSegment
+      file => file.id === fileSegment
     );
     const fileBreadCrumb = fileDetails
       ? `/ ${fileDetails.iconId} ${fileDetails.title}`
@@ -395,43 +393,43 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
       const contents = quill.getContents();
       const quillLength = quill.getLength();
       saveTimerRef.current = setTimeout(async () => {
-        // if (contents && quillLength !== 1 && fileId) {
-        //   if (dirType == 'workspace') {
-        //     dispatch({
-        //       type: 'UPDATE_WORKSPACE',
-        //       payload: {
-        //         workspace: { data: JSON.stringify(contents) },
-        //         workspaceId: fileId,
-        //       },
-        //     });
-        //     await updateWorkspace({ data: JSON.stringify(contents) }, fileId);
-        //   }
-        //   if (dirType == 'folder') {
-        //     if (!workspaceId) return;
-        //     dispatch({
-        //       type: 'UPDATE_FOLDER',
-        //       payload: {
-        //         folder: { data: JSON.stringify(contents) },
-        //         workspaceId,
-        //         folderId: fileId,
-        //       },
-        //     });
-        //     await updateFolder({ data: JSON.stringify(contents) }, fileId);
-        //   }
-        //   if (dirType == 'file') {
-        //     if (!workspaceId || !folderId) return;
-        //     dispatch({
-        //       type: 'UPDATE_FILE',
-        //       payload: {
-        //         file: { data: JSON.stringify(contents) },
-        //         workspaceId,
-        //         folderId: folderId,
-        //         fileId,
-        //       },
-        //     });
-        //     await updateFile({ data: JSON.stringify(contents) }, fileId);
-        //   }
-        // }
+        if (contents && quillLength !== 1 && fileId) {
+          if (dirType == 'workspace') {
+            dispatch({
+              type: 'UPDATE_WORKSPACE',
+              payload: {
+                workspace: { data: JSON.stringify(contents) },
+                workspaceId: fileId,
+              },
+            });
+            await updateWorkspace({ data: JSON.stringify(contents) }, fileId);
+          }
+          if (dirType == 'folder') {
+            if (!workspaceId) return;
+            dispatch({
+              type: 'UPDATE_FOLDER',
+              payload: {
+                folder: { data: JSON.stringify(contents) },
+                workspaceId,
+                folderId: fileId,
+              },
+            });
+            await updateFolder({ data: JSON.stringify(contents) }, fileId);
+          }
+          if (dirType == 'file') {
+            if (!workspaceId || !folderId) return;
+            dispatch({
+              type: 'UPDATE_FILE',
+              payload: {
+                file: { data: JSON.stringify(contents) },
+                workspaceId,
+                folderId: folderId,
+                fileId,
+              },
+            });
+            await updateFile({ data: JSON.stringify(contents) }, fileId);
+          }
+        }
         setSaving(false);
       }, 850);
       socket.emit('send-changes', delta, fileId);
@@ -485,7 +483,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
           setLocalCursors(allCursors);
         }
       })
-      .subscribe(async (status) => {
+      .subscribe(async status => {
         if (status !== 'SUBSCRIBED' || !user) return;
         const response = await findUser(user.id);
         if (!response) return;
@@ -575,7 +573,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
           <div>{breadCrumbs}</div>
           <div className="flex items-center gap-4">
             <div className="flex items-center justify-center h-10">
-              {collaborators?.map((collaborator) => (
+              {collaborators?.map(collaborator => (
                 <TooltipProvider key={collaborator.id}>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -738,11 +736,7 @@ const QuillEditor: React.FC<QuillEditorProps> = ({
             {dirType.toUpperCase()}
           </span>
         </div>
-        <div
-          id="container"
-          className="max-w-[800px]"
-          ref={wrapperRef}
-        ></div>
+        <div id="container" className="max-w-[800px]" ref={wrapperRef}></div>
       </div>
     </>
   );
